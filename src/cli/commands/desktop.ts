@@ -34,6 +34,7 @@ import {
   loadModel,
   loadOllamaApiKey,
   loadPerplexityApiKey,
+  loadPromptHistory,
   loadQQConfig,
   loadReasoningEffort,
   loadRecentWorkspaces,
@@ -52,6 +53,7 @@ import {
   saveEditMode,
   saveEditor,
   saveModel,
+  savePromptHistory,
   saveReasoningEffort,
   saveShowSystemEvents,
   saveSubagentModels,
@@ -188,6 +190,7 @@ type InMessage = { tabId?: string } & (
       braveApiKey?: string | null;
       subagentModels?: Record<string, "flash" | "pro">;
       showSystemEvents?: boolean;
+      promptHistory?: string[];
     }
   | { cmd: "qq_status_get" }
   | { cmd: "qq_connect" }
@@ -254,6 +257,7 @@ interface SettingsEvent {
   };
   subagentModels?: Record<string, "flash" | "pro">;
   showSystemEvents?: boolean;
+  promptHistory?: string[];
   version: string;
 }
 
@@ -755,6 +759,7 @@ function emitSettings(tab: Tab): void {
       webSearchApiKeys: collectWebSearchApiKeyPrefixes(),
       subagentModels: loadSubagentModels(),
       showSystemEvents: loadShowSystemEvents(),
+      promptHistory: loadPromptHistory(),
       version: VERSION,
     },
     tab.id,
@@ -2819,6 +2824,15 @@ export async function desktopCommand(opts: DesktopOptions): Promise<void> {
             cfg.braveApiKey = msg.braveApiKey?.trim() || undefined;
           }
           writeConfig(cfg);
+        }
+        if (msg.promptHistory !== undefined && msg.promptHistory.length > 0) {
+          // Frontend sends [newEntry]; merge against the current persisted list
+          // here (on the backend) so concurrent tabs never clobber each other.
+          const existing = loadPromptHistory();
+          const entry = msg.promptHistory[0]!;
+          const merged = [entry, ...existing.filter((e) => e !== entry)].slice(0, 100);
+          savePromptHistory(merged);
+          emitSettings(tab);
         }
         if (msg.subagentModels !== undefined) {
           saveSubagentModels(msg.subagentModels);
