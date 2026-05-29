@@ -1,5 +1,6 @@
 import { EventEmitter } from "node:events";
-import * as QRCode from "qrcode";
+import qrcode from "qrcode-generator";
+import { t } from "../i18n/index.js";
 
 const ILINK_BASE_URL = "https://ilinkai.weixin.qq.com";
 const CHANNEL_VERSION = "2.2.0";
@@ -45,6 +46,8 @@ export interface WeixinQrLoginResult {
   baseUrl: string;
   userId?: string;
 }
+
+type TerminalQrRenderer = (data: string) => string | null;
 
 function jsonBody(payload: Record<string, unknown>): string {
   return JSON.stringify(
@@ -93,15 +96,43 @@ function headers(token: string | undefined): Record<string, string> {
   return result;
 }
 
-async function renderTerminalQr(data: string): Promise<string | null> {
+function renderTerminalQr(data: string): string | null {
   try {
-    return await QRCode.toString(data, {
-      type: "utf8",
-      errorCorrectionLevel: "medium",
-    });
+    const qr = qrcode(0, "M");
+    qr.addData(data);
+    qr.make();
+    return qr.createASCII(1, 1);
   } catch {
     return null;
   }
+}
+
+function formatQrPrompt({
+  scanData,
+  terminalQr,
+  refreshed,
+  refreshCount,
+}: {
+  scanData: string;
+  terminalQr: string | null;
+  refreshed?: boolean;
+  refreshCount?: number;
+}): string {
+  if (refreshed) {
+    return terminalQr
+      ? t("handlers.weixin.qrRefreshedTerminal", {
+          count: refreshCount ?? 0,
+          qr: terminalQr,
+          url: scanData,
+        })
+      : t("handlers.weixin.qrRefreshedUrl", {
+          count: refreshCount ?? 0,
+          url: scanData,
+        });
+  }
+  return terminalQr
+    ? t("handlers.weixin.qrLoginTerminal", { qr: terminalQr, url: scanData })
+    : t("handlers.weixin.qrLoginUrl", { url: scanData });
 }
 
 async function getIlink(
@@ -131,10 +162,12 @@ export async function runWeixinQrLogin({
   botType = "3",
   timeoutSeconds = 480,
   onInfo,
+  renderQr = renderTerminalQr,
 }: {
   botType?: string;
   timeoutSeconds?: number;
   onInfo?: (message: string) => void;
+  renderQr?: TerminalQrRenderer;
 } = {}): Promise<WeixinQrLoginResult> {
   let qrResponse = await getIlink(
     ILINK_BASE_URL,
@@ -145,12 +178,7 @@ export async function runWeixinQrLogin({
   let qrcodeUrl = String(qrResponse.qrcode_img_content ?? "").trim();
   if (!qrcode) throw new Error("Weixin QR login did not return a qrcode.");
   const qrScanData = qrcodeUrl || qrcode;
-  const terminalQr = await renderTerminalQr(qrScanData);
-  onInfo?.(
-    terminalQr
-      ? `Weixin QR login: scan this QR with WeChat:\n${terminalQr}\n${qrScanData}`
-      : `Weixin QR login: scan this URL with WeChat:\n${qrScanData}`,
-  );
+  onInfo?.(formatQrPrompt({ scanData: qrScanData, terminalQr: renderQr(qrScanData) }));
 
   const deadline = Date.now() + timeoutSeconds * 1000;
   let baseUrl = ILINK_BASE_URL;
@@ -173,7 +201,7 @@ export async function runWeixinQrLogin({
     const status = String(statusResponse.status ?? "wait");
     if (status === "scaned" && !scannedNoticeShown) {
       scannedNoticeShown = true;
-      onInfo?.("Weixin QR scanned. Confirm the login in WeChat.");
+      onInfo?.(t("handlers.weixin.qrScanned"));
     } else if (status === "scaned_but_redirect") {
       const redirectHost = String(statusResponse.redirect_host ?? "").trim();
       if (redirectHost) baseUrl = `https://${redirectHost}`;
@@ -189,11 +217,13 @@ export async function runWeixinQrLogin({
       qrcodeUrl = String(qrResponse.qrcode_img_content ?? "").trim();
       if (!qrcode) throw new Error("Weixin QR refresh did not return a qrcode.");
       const refreshedScanData = qrcodeUrl || qrcode;
-      const refreshedTerminalQr = await renderTerminalQr(refreshedScanData);
       onInfo?.(
-        refreshedTerminalQr
-          ? `Weixin QR refreshed (${refreshCount}/3). Scan this QR:\n${refreshedTerminalQr}\n${refreshedScanData}`
-          : `Weixin QR refreshed (${refreshCount}/3). Scan this URL:\n${refreshedScanData}`,
+        formatQrPrompt({
+          scanData: refreshedScanData,
+          terminalQr: renderQr(refreshedScanData),
+          refreshed: true,
+          refreshCount,
+        }),
       );
     } else if (status === "confirmed") {
       const accountId = String(statusResponse.ilink_bot_id ?? "").trim();

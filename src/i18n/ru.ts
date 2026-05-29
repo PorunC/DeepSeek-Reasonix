@@ -614,5 +614,13 @@ export const ru: TranslationSchema = {
       switchedBraveNote:
         " Укажите параметр BRAVE_SEARCH_API_KEY (или BRAVE_API_KEY) или `braveApiKey` в файле конфигурации; 2000 бесплатных запросов в месяц доступны по адресу https://brave.com/search/api/.",
     },
+    weixin: {
+      ...EN.handlers.weixin,
+      qrLoginTerminal: "Weixin QR login: отсканируйте этот QR-код в WeChat:\n{qr}\n{url}",
+      qrLoginUrl: "Weixin QR login: отсканируйте этот URL в WeChat:\n{url}",
+      qrScanned: "Weixin QR отсканирован. Подтвердите вход в WeChat.",
+      qrRefreshedTerminal: "Weixin QR обновлён ({count}/3). Отсканируйте этот QR-код:\n{qr}\n{url}",
+      qrRefreshedUrl: "Weixin QR обновлён ({count}/3). Отсканируйте этот URL:\n{url}",
+    },
   },
 };

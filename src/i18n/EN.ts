@@ -980,6 +980,11 @@ export const EN: TranslationSchema = {
       promptCredentials:
         "Weixin manual setup: enter iLink token and account id separated by a space, then press Enter. Type /cancel to abort.",
       setupWaitingCredentials: "waiting for iLink token and account id",
+      qrLoginTerminal: "Weixin QR login: scan this QR with WeChat:\n{qr}\n{url}",
+      qrLoginUrl: "Weixin QR login: scan this URL with WeChat:\n{url}",
+      qrScanned: "Weixin QR scanned. Confirm the login in WeChat.",
+      qrRefreshedTerminal: "Weixin QR refreshed ({count}/3). Scan this QR:\n{qr}\n{url}",
+      qrRefreshedUrl: "Weixin QR refreshed ({count}/3). Scan this URL:\n{url}",
       setupCancelled: "Weixin setup cancelled.",
       credentialsRequired: "Weixin token and account id are required.",
       connected: "Weixin connected in {mode} mode. It will auto-start on future launches.",

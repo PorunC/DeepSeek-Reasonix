@@ -1018,6 +1018,16 @@ export const JA: TranslationSchema = {
       readyTimeout:
         "QQ ボットが15秒以内に READY を受信しませんでした — App ID と App Secret を確認してください。",
     },
+    weixin: {
+      ...EN.handlers.weixin,
+      qrLoginTerminal: "Weixin QR ログイン: WeChat でこの QR をスキャンしてください:\n{qr}\n{url}",
+      qrLoginUrl: "Weixin QR ログイン: WeChat でこの URL をスキャンしてください:\n{url}",
+      qrScanned: "Weixin QR がスキャンされました。WeChat でログインを確認してください。",
+      qrRefreshedTerminal:
+        "Weixin QR を更新しました ({count}/3)。この QR をスキャンしてください:\n{qr}\n{url}",
+      qrRefreshedUrl:
+        "Weixin QR を更新しました ({count}/3)。この URL をスキャンしてください:\n{url}",
+    },
     admin: {
       ...EN.handlers.admin,
       doctorNeedsTui: "/doctor は TUI コンテキストが必要です（postDoctor wired）。",

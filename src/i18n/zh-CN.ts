@@ -929,6 +929,11 @@ export const zhCN: TranslationSchema = {
       promptCredentials:
         "微信手动配置：请输入 iLink token 和账号 id，中间用空格分隔后回车。输入 /cancel 可取消。",
       setupWaitingCredentials: "等待输入 iLink token 和账号 id",
+      qrLoginTerminal: "微信扫码登录：请使用微信扫描以下二维码：\n{qr}\n{url}",
+      qrLoginUrl: "微信扫码登录：请使用微信扫描或打开以下链接：\n{url}",
+      qrScanned: "微信二维码已扫描，请在微信中确认登录。",
+      qrRefreshedTerminal: "微信二维码已刷新（{count}/3），请扫描以下二维码：\n{qr}\n{url}",
+      qrRefreshedUrl: "微信二维码已刷新（{count}/3），请扫描或打开以下链接：\n{url}",
       setupCancelled: "微信首次配置已取消。",
       credentialsRequired: "微信 token 和账号 id 不能为空。",
       connected: "微信已在{mode}模式下连接成功，后续启动会自动启用。",
